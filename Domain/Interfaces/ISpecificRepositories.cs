@@ -23,6 +23,7 @@ public interface IMessageRepository : IGenericRepository<Message>
     Task<int> GetConversationMessageCountAsync(Guid conversationId);
     Task<Message?> GetByIdWithDetailsAsync(Guid id);
     Task<List<Message>> GetUnreadMessagesAsync(Guid conversationId, Guid readerId);
+    Task<Dictionary<Guid, int>> GetUnreadCountsAsync(List<Guid> conversationIds, Guid userId);
     System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads);
 }
 

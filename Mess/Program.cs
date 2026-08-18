@@ -1,6 +1,7 @@
 using System.Text;
 using MESS.Application;
 using MESS.Application.Interfaces.Notifications;
+using MESS.Application.Interfaces.Storage;
 using MESS.Infrastructure;
 using MESS.Mess.Hubs;
 using MESS.Mess.Middleware;
@@ -24,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // WebAPI Services
 builder.Services.AddScoped<IChatNotificationService, ChatNotificationService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -110,6 +112,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();

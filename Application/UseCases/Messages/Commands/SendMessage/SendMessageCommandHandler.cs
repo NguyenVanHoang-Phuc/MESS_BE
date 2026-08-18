@@ -51,6 +51,33 @@ public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Res
             CreatedAt = DateTime.UtcNow
         };
 
+        // Attachments
+        if (request.Attachments != null && request.Attachments.Count > 0)
+        {
+            foreach (var att in request.Attachments)
+            {
+                var safeFileType = att.FileType;
+                if (!string.IsNullOrEmpty(safeFileType) && safeFileType.Length > 50)
+                {
+                    if (safeFileType.Contains("spreadsheetml")) safeFileType = "application/vnd.ms-excel";
+                    else if (safeFileType.Contains("wordprocessingml")) safeFileType = "application/msword";
+                    else if (safeFileType.Contains("presentationml")) safeFileType = "application/vnd.ms-powerpoint";
+                    else safeFileType = safeFileType.Substring(0, 50);
+                }
+
+                message.Attachments.Add(new Attachment
+                {
+                    Id = Guid.NewGuid(),
+                    MessageId = message.Id,
+                    FileUrl = att.FileUrl,
+                    FileType = safeFileType,
+                    FileSize = att.FileSize,
+                    CreatedBy = request.SenderId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
         await _messageRepository.AddAsync(message);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -66,4 +93,3 @@ public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Res
         return Result<MessageResponse>.Success(response);
     }
 }
-

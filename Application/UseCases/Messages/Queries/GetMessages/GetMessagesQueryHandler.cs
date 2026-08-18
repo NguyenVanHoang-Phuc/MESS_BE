@@ -36,7 +36,10 @@ public class GetMessagesQueryHandler : IRequestHandler<GetMessagesQuery, Result<
             request.ConversationId, request.PageNumber, request.PageSize);
 
         var totalCount = await _messageRepository.GetConversationMessageCountAsync(request.ConversationId);
-        var mappedMessages = _mapper.Map<List<MessageResponse>>(messages);
+        // Order ascending so chat UI displays chronologically from top to bottom
+        var mappedMessages = _mapper.Map<List<MessageResponse>>(messages)
+            .OrderBy(m => m.SentAt)
+            .ToList();
 
         var paginatedList = PaginatedList<MessageResponse>.Create(
             mappedMessages, totalCount, request.PageNumber, request.PageSize);

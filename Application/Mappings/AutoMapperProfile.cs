@@ -51,8 +51,9 @@ public class AutoMapperProfile : Profile
             .ForMember(d => d.SentAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)));
 
         CreateMap<Attachment, AttachmentResponse>()
-            .ForMember(d => d.FileName, o => o.MapFrom(s => s.FileUrl))
-            .ForMember(d => d.FileType, o => o.MapFrom(s => s.FileType ?? string.Empty));
+            .ForMember(d => d.FileName, o => o.MapFrom(s => System.IO.Path.GetFileName(s.FileUrl)))
+            .ForMember(d => d.FileType, o => o.MapFrom(s => s.FileType ?? string.Empty))
+            .ForMember(d => d.FileSize, o => o.MapFrom(s => s.FileSize));
 
         // --- Task ---
         CreateMap<MESS.Domain.Entities.Task, TaskResponse>()

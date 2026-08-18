@@ -76,6 +76,11 @@ public class ConversationRepository : GenericRepository<Conversation>, IConversa
                 && c.Participants.Any(p => p.UserId == userId2))
             .FirstOrDefaultAsync();
 
+    public async Task<Conversation?> FindByCanonicalKeyAsync(string canonicalKey)
+        => await _dbSet
+            .Include(c => c.Participants).ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(c => c.CanonicalKey == canonicalKey);
+
     public async Task<bool> IsParticipantAsync(Guid conversationId, Guid userId)
         => await _dbSet
             .AnyAsync(c => c.Id == conversationId && c.Participants.Any(p => p.UserId == userId));
@@ -97,6 +102,27 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
             .Take(pageSize)
             .AsNoTracking()
             .ToListAsync();
+
+    public async Task<List<Message>> GetConversationMessagesByCursorAsync(Guid conversationId, DateTime? beforeCursor, int limit)
+    {
+        var query = _dbSet
+            .Include(m => m.Sender)
+            .Include(m => m.Attachments)
+            .Include(m => m.MessageReactions).ThenInclude(r => r.User)
+            .Include(m => m.MessageReads).ThenInclude(r => r.User)
+            .Where(m => m.ConversationId == conversationId && !m.IsDeleted);
+
+        if (beforeCursor.HasValue)
+        {
+            query = query.Where(m => m.CreatedAt < beforeCursor.Value);
+        }
+
+        return await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Take(limit)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
     public async Task<int> GetConversationMessageCountAsync(Guid conversationId)
         => await _dbSet.CountAsync(m => m.ConversationId == conversationId && !m.IsDeleted);

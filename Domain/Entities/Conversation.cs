@@ -9,6 +9,7 @@ public class Conversation : AuditableEntity
     public string? Title { get; set; }
     public string Type { get; set; } = string.Empty; // Direct or Group
     public string? AvatarUrl { get; set; }
+    public string? CanonicalKey { get; set; }
 
     // Navigation properties
     public virtual User? Creator { get; set; }

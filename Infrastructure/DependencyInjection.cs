@@ -21,6 +21,9 @@ public static class DependencyInjection
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
+        // Seeder
+        services.AddScoped<DatabaseSeeder>();
 
         // Generic Repository
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

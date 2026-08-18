@@ -8,6 +8,7 @@ public class User : AuditableEntity
 {
     public string Username { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
     public Guid? DepartmentId { get; set; }
     public Guid? RoleId { get; set; }
     public bool IsActive { get; set; } = true;

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{6439A1C3-1D93-48E3-AA93-A75D308C11E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mess", "Mess\Mess.csproj", "{83C6BC8F-74FD-48FA-B073-B0136C84DD54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessAPI", "Mess\MessAPI.csproj", "{83C6BC8F-74FD-48FA-B073-B0136C84DD54}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

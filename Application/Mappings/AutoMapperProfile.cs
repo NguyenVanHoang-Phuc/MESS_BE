@@ -35,7 +35,7 @@ public class AutoMapperProfile : Profile
         // --- Message ---
         CreateMap<Message, MessageResponse>()
             .ForMember(d => d.SenderName, o => o.MapFrom(s => s.Sender != null ? s.Sender.FullName : string.Empty))
-            .ForMember(d => d.SentAt, o => o.MapFrom(s => s.CreatedAt))
+            .ForMember(d => d.SentAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)))
             .ForMember(d => d.Reactions, o => o.MapFrom(s =>
                 s.MessageReactions
                     .GroupBy(r => r.EmojiCode)
@@ -48,7 +48,7 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Message, MessageSummaryResponse>()
             .ForMember(d => d.SenderName, o => o.MapFrom(s => s.Sender != null ? s.Sender.FullName : string.Empty))
-            .ForMember(d => d.SentAt, o => o.MapFrom(s => s.CreatedAt));
+            .ForMember(d => d.SentAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)));
 
         CreateMap<Attachment, AttachmentResponse>()
             .ForMember(d => d.FileName, o => o.MapFrom(s => s.FileUrl))

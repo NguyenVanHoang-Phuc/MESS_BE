@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using MESS.Application.DTOs.Responses.Conversations;
+using MESS.Application.Interfaces.Notifications;
 using MESS.Domain.Entities;
 using MESS.Domain.Errors;
 using MESS.Domain.Interfaces;
@@ -14,17 +15,20 @@ public class CreateConversationCommandHandler : IRequestHandler<CreateConversati
     private readonly IParticipantRepository _participantRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IChatNotificationService _chatNotificationService;
 
     public CreateConversationCommandHandler(
         IConversationRepository conversationRepository,
         IParticipantRepository participantRepository,
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        IChatNotificationService chatNotificationService)
     {
         _conversationRepository = conversationRepository;
         _participantRepository = participantRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _chatNotificationService = chatNotificationService;
     }
 
     public async Task<Result<ConversationResponse>> Handle(
@@ -85,6 +89,11 @@ public class CreateConversationCommandHandler : IRequestHandler<CreateConversati
 
         var fullConversation = await _conversationRepository.GetByIdWithDetailsAsync(conversation.Id);
         var response = _mapper.Map<ConversationResponse>(fullConversation);
+
+        // Broadcast real-time notification to all participants so sidebar updates immediately
+        var allParticipantIds = request.ParticipantIds.Concat(new[] { request.CreatorId }).Distinct().ToList();
+        await _chatNotificationService.SendNewConversationAsync(response, allParticipantIds);
+
         return Result<ConversationResponse>.Success(response);
     }
 }

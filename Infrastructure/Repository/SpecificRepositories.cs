@@ -95,6 +95,18 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
                         !m.MessageReads.Any(mr => mr.UserId == readerId))
             .ToListAsync();
 
+    public async Task<Dictionary<Guid, int>> GetUnreadCountsAsync(List<Guid> conversationIds, Guid userId)
+    {
+        return await _dbSet
+            .Where(m => conversationIds.Contains(m.ConversationId) &&
+                        m.SenderId != userId &&
+                        !m.IsDeleted &&
+                        !m.MessageReads.Any(mr => mr.UserId == userId))
+            .GroupBy(m => m.ConversationId)
+            .Select(g => new { ConversationId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ConversationId, x => x.Count);
+    }
+
     public async System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads)
     {
         await _context.Set<MessageRead>().AddRangeAsync(messageReads);

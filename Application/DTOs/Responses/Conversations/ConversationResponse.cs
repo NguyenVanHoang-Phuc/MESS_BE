@@ -9,6 +9,8 @@ public class ConversationResponse
     public DateTime CreatedAt { get; set; }
     public List<ParticipantResponse> Participants { get; set; } = new();
     public MessageSummaryResponse? LastMessage { get; set; }
+    public int UnreadCount { get; set; }
+    public bool IsMuted { get; set; }
 }
 
 public class ParticipantResponse

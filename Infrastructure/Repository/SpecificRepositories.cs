@@ -257,6 +257,10 @@ public class MessageReactionRepository : GenericRepository<MessageReaction>, IMe
     public async Task<MessageReaction?> FindAsync(Guid messageId, Guid userId, string emoji)
         => await _dbSet.FirstOrDefaultAsync(r =>
             r.MessageId == messageId && r.UserId == userId && r.EmojiCode == emoji);
+
+    public async Task<MessageReaction?> FindByUserAsync(Guid messageId, Guid userId)
+        => await _dbSet.FirstOrDefaultAsync(r =>
+            r.MessageId == messageId && r.UserId == userId);
 }
 
 public class DepartmentRepository : GenericRepository<Department>, IDepartmentRepository

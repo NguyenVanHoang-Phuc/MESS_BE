@@ -55,6 +55,7 @@ public interface ITaskRepository : IGenericRepository<MESS.Domain.Entities.Task>
 public interface IMessageReactionRepository : IGenericRepository<MessageReaction>
 {
     Task<MessageReaction?> FindAsync(Guid messageId, Guid userId, string emoji);
+    Task<MessageReaction?> FindByUserAsync(Guid messageId, Guid userId);
 }
 
 public interface IDepartmentRepository : IGenericRepository<Department>

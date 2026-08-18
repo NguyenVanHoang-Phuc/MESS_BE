@@ -44,6 +44,7 @@ public static class DomainErrors
         public static readonly Error AlreadyRecalled = new("Message.AlreadyRecalled", "Message has already been recalled.");
         public static readonly Error AlreadyDeleted = new("Message.AlreadyDeleted", "Message has already been deleted.");
         public static readonly Error Empty = new("Message.Empty", "Nội dung tin nhắn hoặc tệp đính kèm không được để trống.");
+        public static readonly Error RecallTimeExpired = new("Message.RecallTimeExpired", "Đã hết thời gian cho phép thu hồi tin nhắn (chỉ được thu hồi trong vòng 24 giờ kể từ khi gửi).");
     }
 
     public static class Task

@@ -20,13 +20,17 @@ public class MessagesController : ApiControllerBase
     [HttpGet("{conversationId:guid}")]
     public async Task<IActionResult> GetMessages(
         Guid conversationId,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 30)
+        [FromQuery] DateTime? beforeCursor = null,
+        [FromQuery] int limit = 30,
+        [FromQuery] int? pageNumber = null,
+        [FromQuery] int? pageSize = null)
     {
         var query = new GetMessagesQuery
         {
             ConversationId = conversationId,
             RequesterId = _currentUser.UserId!.Value,
+            BeforeCursor = beforeCursor,
+            Limit = limit,
             PageNumber = pageNumber,
             PageSize = pageSize
         };

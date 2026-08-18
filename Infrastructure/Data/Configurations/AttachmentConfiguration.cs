@@ -17,7 +17,7 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasMaxLength(1000);
 
         builder.Property(a => a.FileType)
-            .HasMaxLength(50);
+            .HasMaxLength(255);
 
         builder.HasOne(a => a.Message)
             .WithMany(m => m.Attachments)

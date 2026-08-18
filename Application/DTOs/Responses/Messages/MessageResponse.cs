@@ -19,6 +19,7 @@ public class AttachmentResponse
     public string FileName { get; set; } = string.Empty;
     public string FileUrl { get; set; } = string.Empty;
     public string FileType { get; set; } = string.Empty;
+    public int? FileSize { get; set; }
 }
 
 public class ReactionResponse

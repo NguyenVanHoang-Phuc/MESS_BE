@@ -50,4 +50,12 @@ public static class DomainErrors
         public static readonly Error NotFound = new("Department.NotFound", "Department was not found.");
         public static readonly Error NameAlreadyExists = new("Department.NameAlreadyExists", "A department with this name already exists.");
     }
+
+    public static class File
+    {
+        public static readonly Error Empty = new("File.Empty", "File cannot be empty.");
+        public static readonly Error TooManyFiles = new("File.TooManyFiles", "You can only upload up to 30 files at a time.");
+        public static readonly Error TooLarge = new("File.TooLarge", "File size exceeds the maximum limit of 25MB.");
+        public static readonly Error InvalidFormat = new("File.InvalidFormat", "File format is not allowed.");
+    }
 }

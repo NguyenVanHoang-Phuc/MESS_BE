@@ -1,3 +1,4 @@
+using MESS.Application.DTOs.Responses.Conversations;
 using MESS.Application.DTOs.Responses.Messages;
 using MESS.Application.Interfaces.Notifications;
 using MESS.Mess.Hubs;
@@ -29,6 +30,36 @@ public class ChatNotificationService : IChatNotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending message {MessageId} to participants", message.Id);
+        }
+    }
+
+    public async Task SendNewConversationAsync(ConversationResponse conversation, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+        
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveNewConversation", conversation);
+            _logger.LogInformation("Sent new conversation {ConversationId} to participants: {ParticipantIds}", conversation.Id, string.Join(", ", userIds));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending new conversation {ConversationId} to participants", conversation.Id);
+        }
+    }
+
+    public async Task SendConversationDeletedAsync(Guid conversationId, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+        
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveConversationDeleted", conversationId.ToString());
+            _logger.LogInformation("Sent conversation deleted {ConversationId} to participants: {ParticipantIds}", conversationId, string.Join(", ", userIds));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending conversation deleted {ConversationId} to participants", conversationId);
         }
     }
 }

@@ -19,6 +19,11 @@ public static class DomainErrors
         public static readonly Error NotFound = new("Conversation.NotFound", "Conversation was not found.");
         public static Error NotFoundById(Guid id) => new("Conversation.NotFound", $"Conversation with ID '{id}' was not found.");
         public static readonly Error AccessDenied = new("Conversation.AccessDenied", "You are not a participant of this conversation.");
+        public static readonly Error NotAdmin = new("Conversation.NotAdmin", "Only the group administrator can manage members.");
+        public static readonly Error NotGroup = new("Conversation.NotGroup", "Members can only be added to or removed from a group conversation.");
+        public static readonly Error ParticipantAlreadyExists = new("Conversation.ParticipantAlreadyExists", "The user is already a member of this conversation.");
+        public static readonly Error ParticipantNotFound = new("Conversation.ParticipantNotFound", "The member was not found in this conversation.");
+        public static readonly Error CannotRemoveAdmin = new("Conversation.CannotRemoveAdmin", "The group creator/admin cannot be removed.");
         public static readonly Error CannotCreateDirectWithSelf = new("Conversation.CannotCreateDirectWithSelf", "Cannot create a direct conversation with yourself.");
         public static readonly Error DirectConversationAlreadyExists = new("Conversation.DirectConversationAlreadyExists", "A direct conversation with this user already exists.");
     }

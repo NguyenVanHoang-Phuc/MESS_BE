@@ -7,6 +7,7 @@ public interface IUserRepository : IGenericRepository<User>
     Task<User?> FindByUsernameAsync(string username);
     Task<IEnumerable<User>> GetAllWithDetailsAsync();
     Task<User?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<User>> SearchUsersAsync(string query, Guid currentUserId, int limit);
 }
 
 public interface IConversationRepository : IGenericRepository<Conversation>
@@ -25,6 +26,17 @@ public interface IMessageRepository : IGenericRepository<Message>
     Task<List<Message>> GetUnreadMessagesAsync(Guid conversationId, Guid readerId);
     Task<Dictionary<Guid, int>> GetUnreadCountsAsync(List<Guid> conversationIds, Guid userId);
     System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads);
+    Task<(List<Message> Items, int TotalCount)> SearchMessagesAsync(
+        Guid currentUserId,
+        string? keyword,
+        Guid? senderId,
+        Guid? conversationId,
+        DateTime? fromDate,
+        DateTime? toDate,
+        bool? hasAttachments,
+        string? fileType,
+        int pageNumber,
+        int pageSize);
 }
 
 public interface IParticipantRepository : IGenericRepository<Participant>

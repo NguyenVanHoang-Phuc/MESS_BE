@@ -27,6 +27,28 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             .Include(u => u.Role)
             .Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Id == id);
+
+    public async Task<List<User>> SearchUsersAsync(string query, Guid currentUserId, int limit)
+    {
+        var q = _dbSet
+            .Include(u => u.Role)
+            .Include(u => u.Department)
+            .Where(u => u.IsActive && u.Id != currentUserId);
+
+        var trimmed = query?.Trim() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(trimmed))
+        {
+            q = q.Where(u => u.FullName.Contains(trimmed) ||
+                             u.Username.Contains(trimmed) ||
+                             (u.Department != null && u.Department.Name.Contains(trimmed)));
+        }
+
+        return await q
+            .OrderBy(u => u.FullName)
+            .Take(limit > 0 ? limit : 20)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }
 
 public class ConversationRepository : GenericRepository<Conversation>, IConversationRepository
@@ -110,6 +132,76 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
     public async System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads)
     {
         await _context.Set<MessageRead>().AddRangeAsync(messageReads);
+    }
+
+    public async Task<(List<Message> Items, int TotalCount)> SearchMessagesAsync(
+        Guid currentUserId,
+        string? keyword,
+        Guid? senderId,
+        Guid? conversationId,
+        DateTime? fromDate,
+        DateTime? toDate,
+        bool? hasAttachments,
+        string? fileType,
+        int pageNumber,
+        int pageSize)
+    {
+        var query = _dbSet
+            .Include(m => m.Sender)
+            .Include(m => m.Conversation).ThenInclude(c => c.Participants).ThenInclude(p => p.User)
+            .Include(m => m.Attachments)
+            .Where(m => !m.IsDeleted && m.Conversation.Participants.Any(p => p.UserId == currentUserId));
+
+        if (conversationId.HasValue && conversationId.Value != Guid.Empty)
+        {
+            query = query.Where(m => m.ConversationId == conversationId.Value);
+        }
+
+        if (senderId.HasValue && senderId.Value != Guid.Empty)
+        {
+            query = query.Where(m => m.SenderId == senderId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var kw = keyword.Trim();
+            query = query.Where(m => m.Content != null && m.Content.Contains(kw));
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(m => m.CreatedAt >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(m => m.CreatedAt <= toDate.Value);
+        }
+
+        if (hasAttachments.HasValue && hasAttachments.Value)
+        {
+            query = query.Where(m => m.Attachments.Any());
+        }
+
+        if (!string.IsNullOrWhiteSpace(fileType))
+        {
+            var ft = fileType.Trim().ToLower();
+            query = query.Where(m => m.Attachments.Any(a => a.FileType != null && a.FileType.ToLower().Contains(ft)));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var page = pageNumber > 0 ? pageNumber : 1;
+        var size = pageSize > 0 ? pageSize : 20;
+
+        var items = await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }
 

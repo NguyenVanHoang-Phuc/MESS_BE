@@ -68,6 +68,7 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
             .Include(m => m.Sender)
             .Include(m => m.Attachments)
             .Include(m => m.MessageReactions).ThenInclude(r => r.User)
+            .Include(m => m.MessageReads).ThenInclude(r => r.User)
             .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
             .OrderByDescending(m => m.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
@@ -83,7 +84,21 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
             .Include(m => m.Sender)
             .Include(m => m.Attachments)
             .Include(m => m.MessageReactions).ThenInclude(r => r.User)
+            .Include(m => m.MessageReads).ThenInclude(r => r.User)
             .FirstOrDefaultAsync(m => m.Id == id);
+
+    public async Task<List<Message>> GetUnreadMessagesAsync(Guid conversationId, Guid readerId)
+        => await _dbSet
+            .Where(m => m.ConversationId == conversationId &&
+                        m.SenderId != readerId &&
+                        !m.IsDeleted &&
+                        !m.MessageReads.Any(mr => mr.UserId == readerId))
+            .ToListAsync();
+
+    public async System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads)
+    {
+        await _context.Set<MessageRead>().AddRangeAsync(messageReads);
+    }
 }
 
 public class ParticipantRepository : GenericRepository<Participant>, IParticipantRepository

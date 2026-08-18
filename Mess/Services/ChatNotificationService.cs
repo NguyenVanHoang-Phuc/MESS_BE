@@ -62,4 +62,26 @@ public class ChatNotificationService : IChatNotificationService
             _logger.LogError(ex, "Error sending conversation deleted {ConversationId} to participants", conversationId);
         }
     }
+
+    public async Task SendMessagesReadAsync(Guid conversationId, Guid readerId, string readerName, List<Guid> messageIds, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveMessagesRead", new
+            {
+                ConversationId = conversationId,
+                ReaderId = readerId,
+                ReaderName = readerName,
+                MessageIds = messageIds,
+                ReadAt = DateTime.UtcNow
+            });
+            _logger.LogInformation("Sent read receipt for conversation {ConversationId} by reader {ReaderId}", conversationId, readerId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending read receipt for conversation {ConversationId}", conversationId);
+        }
+    }
 }

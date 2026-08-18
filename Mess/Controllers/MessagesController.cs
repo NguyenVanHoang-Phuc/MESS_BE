@@ -1,4 +1,5 @@
 using MESS.Application.Interfaces.Auth;
+using MESS.Application.UseCases.Messages.Commands.MarkConversationAsRead;
 using MESS.Application.UseCases.Messages.Commands.SendMessage;
 using MESS.Application.UseCases.Messages.Queries.GetMessages;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,18 @@ public class MessagesController : ApiControllerBase
     public async Task<IActionResult> Send([FromBody] SendMessageCommand command)
     {
         command.SenderId = _currentUser.UserId!.Value;
+        var result = await Mediator.Send(command);
+        return HandleResult(result);
+    }
+
+    [HttpPost("conversations/{conversationId:guid}/read")]
+    public async Task<IActionResult> MarkAsRead(Guid conversationId)
+    {
+        var command = new MarkConversationAsReadCommand
+        {
+            ConversationId = conversationId,
+            ReaderId = _currentUser.UserId!.Value
+        };
         var result = await Mediator.Send(command);
         return HandleResult(result);
     }

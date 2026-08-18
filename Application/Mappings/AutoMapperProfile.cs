@@ -44,7 +44,14 @@ public class AutoMapperProfile : Profile
                         Emoji = g.Key,
                         Count = g.Count(),
                         UserNames = g.Select(r => r.User != null ? r.User.FullName : string.Empty).ToList()
-                    }).ToList()));
+                    }).ToList()))
+            .ForMember(d => d.Reads, o => o.MapFrom(s => s.MessageReads));
+
+        CreateMap<MessageRead, MessageReadResponse>()
+            .ForMember(d => d.UserId, o => o.MapFrom(s => s.UserId))
+            .ForMember(d => d.UserName, o => o.MapFrom(s => s.User != null ? s.User.Username : string.Empty))
+            .ForMember(d => d.FullName, o => o.MapFrom(s => s.User != null ? s.User.FullName : string.Empty))
+            .ForMember(d => d.ReadAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.ReadAt, DateTimeKind.Utc)));
 
         CreateMap<Message, MessageSummaryResponse>()
             .ForMember(d => d.SenderName, o => o.MapFrom(s => s.Sender != null ? s.Sender.FullName : string.Empty))

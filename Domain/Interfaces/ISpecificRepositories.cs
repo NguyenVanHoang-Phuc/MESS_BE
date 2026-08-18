@@ -22,6 +22,8 @@ public interface IMessageRepository : IGenericRepository<Message>
     Task<IEnumerable<Message>> GetConversationMessagesAsync(Guid conversationId, int pageNumber, int pageSize);
     Task<int> GetConversationMessageCountAsync(Guid conversationId);
     Task<Message?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<Message>> GetUnreadMessagesAsync(Guid conversationId, Guid readerId);
+    System.Threading.Tasks.Task AddMessageReadsAsync(IEnumerable<MessageRead> messageReads);
 }
 
 public interface IParticipantRepository : IGenericRepository<Participant>

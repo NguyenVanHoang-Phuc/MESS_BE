@@ -9,9 +9,17 @@ public static class DomainErrors
         public static readonly Error NotFound = new("User.NotFound", "User was not found.");
         public static Error NotFoundById(Guid id) => new("User.NotFound", $"User with ID '{id}' was not found.");
         public static readonly Error UsernameAlreadyExists = new("User.UsernameAlreadyExists", "Username has already been taken.");
+        public static readonly Error EmailAlreadyExists = new("User.EmailAlreadyExists", "Email này đã được sử dụng bởi một tài khoản khác.");
         public static readonly Error InvalidCredentials = new("User.InvalidCredentials", "Username or password is incorrect.");
         public static readonly Error Inactive = new("User.Inactive", "User account is inactive.");
         public static readonly Error AccessDenied = new("User.AccessDenied", "You do not have permission to perform this action.");
+    }
+
+    public static class Auth
+    {
+        public static readonly Error InvalidOtp = new("Auth.InvalidOtp", "Mã xác thực OTP không chính xác.");
+        public static readonly Error OtpExpired = new("Auth.OtpExpired", "Mã xác thực OTP đã hết hạn. Vui lòng lấy mã mới.");
+        public static readonly Error OtpNotFound = new("Auth.OtpNotFound", "Không tìm thấy yêu cầu xác thực OTP. Vui lòng gửi lại mã.");
     }
 
     public static class Conversation

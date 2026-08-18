@@ -1,5 +1,7 @@
 using System.Text;
 using MESS.Application;
+using MESS.Application.Interfaces.Auth;
+using MESS.Application.Interfaces.Email;
 using MESS.Application.Interfaces.Notifications;
 using MESS.Application.Interfaces.Storage;
 using MESS.Infrastructure;
@@ -24,8 +26,11 @@ builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
 // WebAPI Services
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IChatNotificationService, ChatNotificationService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // SignalR
 builder.Services.AddSignalR();

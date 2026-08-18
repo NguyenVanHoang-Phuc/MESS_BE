@@ -11,6 +11,16 @@ public class MessageResponse
     public DateTime SentAt { get; set; }
     public List<AttachmentResponse> Attachments { get; set; } = new();
     public List<ReactionResponse> Reactions { get; set; } = new();
+    public List<MessageReadResponse> Reads { get; set; } = new();
+}
+
+public class MessageReadResponse
+{
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public DateTime ReadAt { get; set; }
 }
 
 public class AttachmentResponse

@@ -84,4 +84,43 @@ public class ChatNotificationService : IChatNotificationService
             _logger.LogError(ex, "Error sending read receipt for conversation {ConversationId}", conversationId);
         }
     }
+
+    public async Task SendMessageRecalledAsync(Guid conversationId, Guid messageId, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveMessageRecalled", new
+            {
+                ConversationId = conversationId,
+                MessageId = messageId
+            });
+            _logger.LogInformation("Sent message recalled for {MessageId} in conversation {ConversationId}", messageId, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending message recalled for {MessageId}", messageId);
+        }
+    }
+
+    public async Task SendMessageReactionAsync(Guid conversationId, Guid messageId, List<ReactionResponse> reactions, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveMessageReaction", new
+            {
+                ConversationId = conversationId,
+                MessageId = messageId,
+                Reactions = reactions
+            });
+            _logger.LogInformation("Sent message reaction update for {MessageId} in conversation {ConversationId}", messageId, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending message reaction for {MessageId}", messageId);
+        }
+    }
 }

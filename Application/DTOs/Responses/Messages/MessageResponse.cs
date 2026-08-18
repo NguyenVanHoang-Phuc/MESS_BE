@@ -37,4 +37,5 @@ public class ReactionResponse
     public string Emoji { get; set; } = string.Empty;
     public int Count { get; set; }
     public List<string> UserNames { get; set; } = new();
+    public List<Guid> UserIds { get; set; } = new();
 }

@@ -96,4 +96,28 @@ public class MessagesController : ApiControllerBase
         var result = await Mediator.Send(command);
         return HandleResult(result);
     }
+
+    [HttpPost("{messageId:guid}/recall")]
+    [HttpPut("{messageId:guid}/recall")]
+    public async Task<IActionResult> Recall(Guid messageId)
+    {
+        var command = new MESS.Application.UseCases.Messages.Commands.RecallMessage.RecallMessageCommand(
+            messageId,
+            _currentUser.UserId!.Value
+        );
+        var result = await Mediator.Send(command);
+        return HandleResult(result);
+    }
+
+    [HttpPost("{messageId:guid}/react")]
+    public async Task<IActionResult> React(Guid messageId, [FromBody] MESS.Application.DTOs.Requests.Messages.ReactMessageRequest request)
+    {
+        var command = new MESS.Application.UseCases.Messages.Commands.ReactMessage.ReactMessageCommand(
+            messageId,
+            _currentUser.UserId!.Value,
+            request.Emoji
+        );
+        var result = await Mediator.Send(command);
+        return HandleResult(result);
+    }
 }

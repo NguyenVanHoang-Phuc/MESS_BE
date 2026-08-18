@@ -42,6 +42,49 @@ public class MessagesController : ApiControllerBase
         return HandleResult(result);
     }
 
+    [HttpPost("direct")]
+    public async Task<IActionResult> SendDirect([FromBody] MESS.Application.DTOs.Requests.Messages.SendDirectMessageRequest request)
+    {
+        var command = new MESS.Application.UseCases.Messages.Commands.SendDirectMessage.SendDirectMessageCommand
+        {
+            SenderId = _currentUser.UserId!.Value,
+            RecipientId = request.RecipientId,
+            Content = request.Content,
+            Attachments = request.Attachments ?? new(),
+            ClientOperationId = request.ClientOperationId
+        };
+        var result = await Mediator.Send(command);
+        return HandleResult(result);
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? q,
+        [FromQuery] Guid? senderId,
+        [FromQuery] Guid? conversationId,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        [FromQuery] bool? hasAttachments,
+        [FromQuery] string? fileType,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var query = new MESS.Application.UseCases.Messages.Queries.SearchMessages.SearchMessagesQuery(
+            CurrentUserId: _currentUser.UserId!.Value,
+            Keyword: q,
+            SenderId: senderId,
+            ConversationId: conversationId,
+            FromDate: fromDate,
+            ToDate: toDate,
+            HasAttachments: hasAttachments,
+            FileType: fileType,
+            PageNumber: pageNumber,
+            PageSize: pageSize
+        );
+        var result = await Mediator.Send(query);
+        return HandleResult(result);
+    }
+
     [HttpPost("conversations/{conversationId:guid}/read")]
     public async Task<IActionResult> MarkAsRead(Guid conversationId)
     {

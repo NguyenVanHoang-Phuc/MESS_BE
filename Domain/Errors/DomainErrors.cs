@@ -43,6 +43,7 @@ public static class DomainErrors
         public static readonly Error AccessDenied = new("Message.AccessDenied", "You are not the sender of this message.");
         public static readonly Error AlreadyRecalled = new("Message.AlreadyRecalled", "Message has already been recalled.");
         public static readonly Error AlreadyDeleted = new("Message.AlreadyDeleted", "Message has already been deleted.");
+        public static readonly Error Empty = new("Message.Empty", "Nội dung tin nhắn hoặc tệp đính kèm không được để trống.");
     }
 
     public static class Task

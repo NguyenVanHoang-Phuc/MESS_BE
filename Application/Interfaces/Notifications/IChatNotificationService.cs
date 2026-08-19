@@ -1,5 +1,6 @@
 using MESS.Application.DTOs.Responses.Conversations;
 using MESS.Application.DTOs.Responses.Messages;
+using MESS.Application.DTOs.Responses.Tasks;
 
 namespace MESS.Application.Interfaces.Notifications;
 
@@ -11,4 +12,7 @@ public interface IChatNotificationService
     Task SendMessagesReadAsync(Guid conversationId, Guid readerId, string readerName, List<Guid> messageIds, List<Guid> participantIds);
     Task SendMessageRecalledAsync(Guid conversationId, Guid messageId, List<Guid> participantIds);
     Task SendMessageReactionAsync(Guid conversationId, Guid messageId, List<ReactionResponse> reactions, List<Guid> participantIds);
+    Task SendNewTaskAsync(TaskResponse task, List<Guid> participantIds);
+    Task SendTaskUpdatedAsync(TaskResponse task, List<Guid> participantIds);
+    Task SendTaskDeletedAsync(Guid taskId, Guid? conversationId, List<Guid> participantIds);
 }

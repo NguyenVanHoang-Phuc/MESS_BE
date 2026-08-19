@@ -123,4 +123,53 @@ public class ChatNotificationService : IChatNotificationService
             _logger.LogError(ex, "Error sending message reaction for {MessageId}", messageId);
         }
     }
+
+    public async Task SendNewTaskAsync(MESS.Application.DTOs.Responses.Tasks.TaskResponse task, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveNewTask", task);
+            _logger.LogInformation("Sent new task {TaskId} to participants: {ParticipantIds}", task.Id, string.Join(", ", userIds));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending new task {TaskId}", task.Id);
+        }
+    }
+
+    public async Task SendTaskUpdatedAsync(MESS.Application.DTOs.Responses.Tasks.TaskResponse task, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveTaskUpdated", task);
+            _logger.LogInformation("Sent task updated {TaskId} to participants: {ParticipantIds}", task.Id, string.Join(", ", userIds));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending task updated {TaskId}", task.Id);
+        }
+    }
+
+    public async Task SendTaskDeletedAsync(Guid taskId, Guid? conversationId, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveTaskDeleted", new
+            {
+                TaskId = taskId,
+                ConversationId = conversationId
+            });
+            _logger.LogInformation("Sent task deleted {TaskId} in conversation {ConversationId}", taskId, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending task deleted {TaskId}", taskId);
+        }
+    }
 }

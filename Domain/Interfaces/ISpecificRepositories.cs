@@ -52,6 +52,7 @@ public interface ITaskRepository : IGenericRepository<MESS.Domain.Entities.Task>
     Task<IEnumerable<MESS.Domain.Entities.Task>> GetAssignedToUserAsync(Guid userId);
     Task<IEnumerable<MESS.Domain.Entities.Task>> GetCreatedByUserAsync(Guid userId);
     Task<MESS.Domain.Entities.Task?> GetByIdWithDetailsAsync(Guid id);
+    Task<List<MESS.Domain.Entities.Task>> GetTasksByFilterAsync(Guid? conversationId, Guid? messageId, Guid? assigneeId, Guid? creatorId, string? status);
 }
 
 public interface IMessageReactionRepository : IGenericRepository<MessageReaction>

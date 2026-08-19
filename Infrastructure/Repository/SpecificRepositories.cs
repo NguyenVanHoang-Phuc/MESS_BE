@@ -59,6 +59,7 @@ public class ConversationRepository : GenericRepository<Conversation>, IConversa
         => await _dbSet
             .Include(c => c.Participants).ThenInclude(p => p.User)
             .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1)).ThenInclude(m => m.Sender)
+            .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1)).ThenInclude(m => m.Attachments)
             .Where(c => c.Participants.Any(p => p.UserId == userId))
             .OrderByDescending(c => c.Messages.Max(m => (DateTime?)m.CreatedAt) ?? c.CreatedAt)
             .AsNoTracking()

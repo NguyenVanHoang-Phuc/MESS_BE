@@ -56,7 +56,23 @@ public class AutoMapperProfile : Profile
 
         CreateMap<Message, MessageSummaryResponse>()
             .ForMember(d => d.SenderName, o => o.MapFrom(s => s.Sender != null ? s.Sender.FullName : string.Empty))
-            .ForMember(d => d.SentAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)));
+            .ForMember(d => d.SentAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)))
+            .ForMember(d => d.Content, o => o.MapFrom(s =>
+                !string.IsNullOrEmpty(s.Content)
+                    ? s.Content
+                    : s.Attachments != null && s.Attachments.Any(a =>
+                        (!string.IsNullOrEmpty(a.FileType) && a.FileType.StartsWith("image/")) ||
+                        a.FileUrl.Contains("image/upload") ||
+                        a.FileUrl.EndsWith(".jpg") || a.FileUrl.EndsWith(".jpeg") || a.FileUrl.EndsWith(".png") || a.FileUrl.EndsWith(".webp") || a.FileUrl.EndsWith(".gif"))
+                        ? (s.Attachments.Count > 1 ? $"[Đã gửi {s.Attachments.Count} hình ảnh]" : "[Hình ảnh]")
+                        : s.Attachments != null && s.Attachments.Any(a =>
+                            (!string.IsNullOrEmpty(a.FileType) && a.FileType.StartsWith("video/")) ||
+                            a.FileUrl.Contains("video/upload") ||
+                            a.FileUrl.EndsWith(".mp4") || a.FileUrl.EndsWith(".mov"))
+                            ? "[Video]"
+                            : s.Attachments != null && s.Attachments.Any()
+                                ? (s.Attachments.Count > 1 ? $"[Đã gửi {s.Attachments.Count} tệp đính kèm]" : $"[Tệp] {System.IO.Path.GetFileName(s.Attachments.First().FileUrl)}")
+                                : "[Hình ảnh/Tệp]"));
 
         CreateMap<Attachment, AttachmentResponse>()
             .ForMember(d => d.FileName, o => o.MapFrom(s => System.IO.Path.GetFileName(s.FileUrl)))

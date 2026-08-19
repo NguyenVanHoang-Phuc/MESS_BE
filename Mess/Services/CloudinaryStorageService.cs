@@ -1,3 +1,9 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using MESS.Application.Interfaces.Storage;
@@ -9,6 +15,8 @@ namespace MESS.Mess.Services;
 
 public class CloudinaryStorageService : IFileStorageService
 {
+    private readonly BlobServiceClient? _blobServiceClient;
+    private readonly string _azureContainerName = "mess-files";
     private readonly Cloudinary? _cloudinary;
     private readonly LocalFileStorageService _fallbackStorage;
     private readonly ILogger<CloudinaryStorageService> _logger;
@@ -21,9 +29,45 @@ public class CloudinaryStorageService : IFileStorageService
         _fallbackStorage = fallbackStorage;
         _logger = logger;
 
-        var cloudName = configuration["Cloudinary:CloudName"] ?? configuration["Cloudinary__CloudName"];
-        var apiKey = configuration["Cloudinary:ApiKey"] ?? configuration["Cloudinary__ApiKey"];
-        var apiSecret = configuration["Cloudinary:ApiSecret"] ?? configuration["Cloudinary__ApiSecret"];
+        // 1. Check Azure Blob Storage Connection String
+        var azureConnStr = configuration["Azure:BlobConnectionString"] 
+                        ?? configuration["Azure__BlobConnectionString"]
+                        ?? Environment.GetEnvironmentVariable("Azure__BlobConnectionString")
+                        ?? Environment.GetEnvironmentVariable("Azure:BlobConnectionString");
+
+        if (!string.IsNullOrWhiteSpace(azureConnStr))
+        {
+            try
+            {
+                _blobServiceClient = new BlobServiceClient(azureConnStr.Trim());
+                _logger.LogInformation("Azure Blob Storage initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to initialize Azure Blob Storage. Will fallback to Cloudinary / Local.");
+                _blobServiceClient = null;
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Azure Blob Storage connection string not configured.");
+        }
+
+        // 2. Check Cloudinary Credentials
+        var cloudName = configuration["Cloudinary:CloudName"] 
+                     ?? configuration["Cloudinary__CloudName"]
+                     ?? Environment.GetEnvironmentVariable("Cloudinary__CloudName")
+                     ?? Environment.GetEnvironmentVariable("Cloudinary:CloudName");
+
+        var apiKey = configuration["Cloudinary:ApiKey"] 
+                  ?? configuration["Cloudinary__ApiKey"]
+                  ?? Environment.GetEnvironmentVariable("Cloudinary__ApiKey")
+                  ?? Environment.GetEnvironmentVariable("Cloudinary:ApiKey");
+
+        var apiSecret = configuration["Cloudinary:ApiSecret"] 
+                     ?? configuration["Cloudinary__ApiSecret"]
+                     ?? Environment.GetEnvironmentVariable("Cloudinary__ApiSecret")
+                     ?? Environment.GetEnvironmentVariable("Cloudinary:ApiSecret");
 
         if (!string.IsNullOrWhiteSpace(cloudName) && !string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(apiSecret))
         {
@@ -36,18 +80,90 @@ public class CloudinaryStorageService : IFileStorageService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to initialize Cloudinary. Falling back to Local Storage.");
+                _logger.LogWarning(ex, "Failed to initialize Cloudinary. Will fallback to Local Storage.");
                 _cloudinary = null;
             }
         }
         else
         {
-            _logger.LogWarning("Cloudinary credentials not provided in .env. Falling back to Local Storage.");
+            _logger.LogInformation("Cloudinary credentials not provided in .env.");
         }
     }
 
     public async Task<string> SaveFileAsync(IFormFile file, string folder)
     {
+        // 1. Try Azure Blob Storage first if configured
+        if (_blobServiceClient != null)
+        {
+            try
+            {
+                var containerClient = _blobServiceClient.GetBlobContainerClient(_azureContainerName);
+
+                // Create container if not existing (safe for both public/private accounts)
+                try
+                {
+                    await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+                }
+                catch
+                {
+                    try
+                    {
+                        await containerClient.CreateIfNotExistsAsync();
+                    }
+                    catch
+                    {
+                        // Ignored if already exists or permission restrictions
+                    }
+                }
+
+                var ext = Path.GetExtension(file.FileName);
+                var safeFileName = Path.GetFileNameWithoutExtension(file.FileName);
+                var blobName = $"mess_chat/{folder}/{Guid.NewGuid():N}_{safeFileName}{ext}";
+
+                var blobClient = containerClient.GetBlobClient(blobName);
+
+                using (var stream = file.OpenReadStream())
+                {
+                    var uploadOptions = new BlobUploadOptions
+                    {
+                        HttpHeaders = new BlobHttpHeaders
+                        {
+                            ContentType = string.IsNullOrWhiteSpace(file.ContentType) 
+                                ? "application/octet-stream" 
+                                : file.ContentType
+                        }
+                    };
+                    await blobClient.UploadAsync(stream, uploadOptions);
+                }
+
+                string azureUrl;
+                if (blobClient.CanGenerateSasUri)
+                {
+                    var sasBuilder = new BlobSasBuilder
+                    {
+                        BlobContainerName = _azureContainerName,
+                        BlobName = blobName,
+                        Resource = "b",
+                        ExpiresOn = DateTimeOffset.UtcNow.AddYears(10)
+                    };
+                    sasBuilder.SetPermissions(BlobSasPermissions.Read);
+                    azureUrl = blobClient.GenerateSasUri(sasBuilder).ToString();
+                }
+                else
+                {
+                    azureUrl = blobClient.Uri.ToString();
+                }
+
+                _logger.LogInformation("Uploaded file {FileName} to Azure Blob Storage: {Url}", file.FileName, azureUrl);
+                return azureUrl;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload file {FileName} to Azure Blob Storage: {Message}. Falling back to Cloudinary...", file.FileName, ex.Message);
+            }
+        }
+
+        // 2. Try Cloudinary if Azure is not available or failed
         if (_cloudinary != null)
         {
             try
@@ -118,7 +234,7 @@ public class CloudinaryStorageService : IFileStorageService
             }
         }
 
-        // Fallback to local storage
+        // 3. Fallback to local storage if all cloud services fail or are unconfigured
         return await _fallbackStorage.SaveFileAsync(file, folder);
     }
 }

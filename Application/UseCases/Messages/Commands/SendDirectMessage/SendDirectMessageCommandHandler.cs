@@ -62,8 +62,15 @@ public class SendDirectMessageCommandHandler : IRequestHandler<SendDirectMessage
             return Result<SendDirectMessageResponse>.Failure(DomainErrors.User.NotFound);
         }
 
-        // 4. Find or create direct conversation
-        var conversation = await _conversationRepository.FindDirectConversationAsync(request.SenderId, request.RecipientId);
+        // 4. Find or create direct conversation using CanonicalKey (fast index & duplicate proof)
+        var u1 = request.SenderId;
+        var u2 = request.RecipientId;
+        var canonicalKey = string.Compare(u1.ToString(), u2.ToString(), StringComparison.OrdinalIgnoreCase) < 0
+            ? $"{u1}_{u2}"
+            : $"{u2}_{u1}";
+
+        var conversation = await _conversationRepository.FindByCanonicalKeyAsync(canonicalKey)
+            ?? await _conversationRepository.FindDirectConversationAsync(request.SenderId, request.RecipientId);
         bool wasCreated = false;
 
         if (conversation == null)
@@ -72,6 +79,7 @@ public class SendDirectMessageCommandHandler : IRequestHandler<SendDirectMessage
             {
                 Id = Guid.NewGuid(),
                 Type = "Direct",
+                CanonicalKey = canonicalKey,
                 Title = null,
                 CreatedBy = request.SenderId,
                 CreatedAt = DateTime.UtcNow

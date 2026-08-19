@@ -22,6 +22,13 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(c => c.AvatarUrl)
             .HasMaxLength(1000);
 
+        builder.Property(c => c.CanonicalKey)
+            .HasMaxLength(100);
+
+        builder.HasIndex(c => c.CanonicalKey)
+            .IsUnique()
+            .HasFilter("[CanonicalKey] IS NOT NULL");
+
         builder.HasOne(c => c.Creator)
             .WithMany(u => u.CreatedConversations)
             .HasForeignKey(c => c.CreatedBy)

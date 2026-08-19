@@ -25,6 +25,8 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         // Index for fast query: (ConversationId, CreatedAt)
         builder.HasIndex(m => new { m.ConversationId, m.CreatedAt });
+        // Index for querying by Sender and timestamp
+        builder.HasIndex(m => new { m.SenderId, m.CreatedAt });
 
         builder.HasOne(m => m.Conversation)
             .WithMany(c => c.Messages)

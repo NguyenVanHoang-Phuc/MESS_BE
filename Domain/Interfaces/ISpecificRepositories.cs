@@ -15,12 +15,14 @@ public interface IConversationRepository : IGenericRepository<Conversation>
     Task<IEnumerable<Conversation>> GetUserConversationsAsync(Guid userId);
     Task<Conversation?> GetByIdWithDetailsAsync(Guid id);
     Task<Conversation?> FindDirectConversationAsync(Guid userId1, Guid userId2);
+    Task<Conversation?> FindByCanonicalKeyAsync(string canonicalKey);
     Task<bool> IsParticipantAsync(Guid conversationId, Guid userId);
 }
 
 public interface IMessageRepository : IGenericRepository<Message>
 {
     Task<IEnumerable<Message>> GetConversationMessagesAsync(Guid conversationId, int pageNumber, int pageSize);
+    Task<List<Message>> GetConversationMessagesByCursorAsync(Guid conversationId, DateTime? beforeCursor, int limit);
     Task<int> GetConversationMessageCountAsync(Guid conversationId);
     Task<Message?> GetByIdWithDetailsAsync(Guid id);
     Task<List<Message>> GetUnreadMessagesAsync(Guid conversationId, Guid readerId);

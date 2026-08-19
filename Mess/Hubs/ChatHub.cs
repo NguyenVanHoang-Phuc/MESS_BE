@@ -21,10 +21,25 @@ public class ChatHub : Hub
         await base.OnConnectedAsync();
     }
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
+    public async Task JoinConversation(string conversationId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"conv_{conversationId}");
+    }
+
+    public async Task LeaveConversation(string conversationId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conv_{conversationId}");
+    }
+
+    public async Task SendTyping(string conversationId, string userName, bool isTyping)
     {
         var userId = Context.UserIdentifier;
-        _logger.LogInformation("User {UserId} disconnected from ChatHub with ConnectionId: {ConnectionId}", userId, Context.ConnectionId);
-        await base.OnDisconnectedAsync(exception);
+        await Clients.OthersInGroup($"conv_{conversationId}").SendAsync("ReceiveUserTyping", new
+        {
+            ConversationId = conversationId,
+            UserId = userId,
+            UserName = userName,
+            IsTyping = isTyping
+        });
     }
 }

@@ -13,6 +13,9 @@ public class MessageReactionConfiguration : IEntityTypeConfiguration<MessageReac
         // Composite primary key
         builder.HasKey(mr => new { mr.MessageId, mr.UserId });
 
+        // Index for user reaction queries
+        builder.HasIndex(mr => new { mr.UserId, mr.EmojiCode });
+
         builder.Property(mr => mr.EmojiCode)
             .IsRequired()
             .HasMaxLength(50);

@@ -13,6 +13,9 @@ public class MessageReadConfiguration : IEntityTypeConfiguration<MessageRead>
         // Composite primary key
         builder.HasKey(mr => new { mr.MessageId, mr.UserId });
 
+        // Index for querying read history by user
+        builder.HasIndex(mr => new { mr.UserId, mr.ReadAt });
+
         builder.Property(mr => mr.ReadAt)
             .IsRequired()
             .HasDefaultValueSql("GETDATE()");

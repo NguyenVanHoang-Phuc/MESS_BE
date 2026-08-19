@@ -13,8 +13,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using DotNetEnv; 
+
+// 2. NẠP FILE .ENV TRƯỚC TIÊN (Trước cả lúc tạo builder)
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 3. THÊM BIẾN MÔI TRƯỜNG VÀO CẤU HÌNH CỦA .NET
+builder.Configuration.AddEnvironmentVariables();
 
 // === Services ===
 builder.Services.AddApplicationServices();
@@ -28,7 +35,8 @@ builder.Services.AddEndpointsApiExplorer();
 // WebAPI Services
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IChatNotificationService, ChatNotificationService>();
-builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<LocalFileStorageService>();
+builder.Services.AddScoped<IFileStorageService, CloudinaryStorageService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 

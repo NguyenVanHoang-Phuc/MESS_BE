@@ -13,6 +13,9 @@ public class ParticipantConfiguration : IEntityTypeConfiguration<Participant>
         // Composite primary key
         builder.HasKey(p => new { p.ConversationId, p.UserId });
 
+        // Index for fast lookup of a user's conversations
+        builder.HasIndex(p => new { p.UserId, p.ConversationId });
+
         builder.Property(p => p.Role)
             .IsRequired()
             .HasMaxLength(50);

@@ -63,9 +63,9 @@ public static class DomainErrors
 
     public static class File
     {
-        public static readonly Error Empty = new("File.Empty", "File cannot be empty.");
-        public static readonly Error TooManyFiles = new("File.TooManyFiles", "You can only upload up to 30 files at a time.");
-        public static readonly Error TooLarge = new("File.TooLarge", "File size exceeds the maximum limit of 25MB.");
-        public static readonly Error InvalidFormat = new("File.InvalidFormat", "File format is not allowed.");
+        public static readonly Error Empty = new("File.Empty", "Tệp tải lên bị rỗng (0 KB). Vui lòng chọn tệp hợp lệ.");
+        public static readonly Error TooManyFiles = new("File.TooManyFiles", "Bạn chỉ có thể tải lên tối đa 30 tệp mỗi lần gửi.");
+        public static readonly Error TooLarge = new("File.TooLarge", "Dung lượng tệp vượt quá giới hạn tối đa 25MB.");
+        public static readonly Error InvalidFormat = new("File.InvalidFormat", "Định dạng tệp này không được hỗ trợ.");
     }
 }

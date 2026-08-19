@@ -15,4 +15,5 @@ public interface IChatNotificationService
     Task SendNewTaskAsync(TaskResponse task, List<Guid> participantIds);
     Task SendTaskUpdatedAsync(TaskResponse task, List<Guid> participantIds);
     Task SendTaskDeletedAsync(Guid taskId, Guid? conversationId, List<Guid> participantIds);
+    Task SendTaskReminderAsync(TaskReminderDto reminder, List<Guid> participantIds);
 }

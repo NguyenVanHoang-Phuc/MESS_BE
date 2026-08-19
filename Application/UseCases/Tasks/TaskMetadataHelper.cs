@@ -23,6 +23,7 @@ public static class TaskMetadataHelper
                         .ToList();
 
         var clean = rawDescription.Replace(match.Value, "").TrimEnd();
+        clean = Regex.Replace(clean, @"<!--REMINDED:.*?-->", "").TrimEnd();
         return (clean, ids);
     }
 
@@ -43,5 +44,29 @@ public static class TaskMetadataHelper
         }
 
         return baseDesc;
+    }
+
+    public static List<string> GetReminderTags(string? rawDescription)
+    {
+        if (string.IsNullOrEmpty(rawDescription)) return new List<string>();
+        var match = Regex.Match(rawDescription, @"<!--REMINDED:(.*?)-->");
+        if (!match.Success) return new List<string>();
+        return match.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+
+    public static string AddReminderTag(string? rawDescription, string reminderTag)
+    {
+        var currentTags = GetReminderTags(rawDescription);
+        if (!currentTags.Contains(reminderTag))
+        {
+            currentTags.Add(reminderTag);
+        }
+
+        var baseDesc = rawDescription ?? string.Empty;
+        baseDesc = Regex.Replace(baseDesc, @"<!--REMINDED:.*?-->", "").TrimEnd();
+
+        return string.IsNullOrEmpty(baseDesc)
+            ? $"<!--REMINDED:{string.Join(",", currentTags)}-->"
+            : $"{baseDesc}\n<!--REMINDED:{string.Join(",", currentTags)}-->";
     }
 }

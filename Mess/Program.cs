@@ -39,6 +39,7 @@ builder.Services.AddScoped<LocalFileStorageService>();
 builder.Services.AddScoped<IFileStorageService, CloudinaryStorageService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHostedService<TaskReminderBackgroundService>();
 
 // SignalR
 builder.Services.AddSignalR();

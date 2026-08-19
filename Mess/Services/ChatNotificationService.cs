@@ -172,4 +172,19 @@ public class ChatNotificationService : IChatNotificationService
             _logger.LogError(ex, "Error sending task deleted {TaskId}", taskId);
         }
     }
+
+    public async Task SendTaskReminderAsync(MESS.Application.DTOs.Responses.Tasks.TaskReminderDto reminder, List<Guid> participantIds)
+    {
+        var userIds = participantIds.Select(id => id.ToString()).ToList();
+
+        try
+        {
+            await _hubContext.Clients.Users(userIds).SendAsync("ReceiveTaskReminder", reminder);
+            _logger.LogInformation("Sent task reminder {Type} for task {TaskId} to {Count} users", reminder.Type, reminder.TaskId, userIds.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending task reminder for {TaskId}", reminder.TaskId);
+        }
+    }
 }

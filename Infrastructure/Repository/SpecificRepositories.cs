@@ -275,6 +275,46 @@ public class TaskRepository : GenericRepository<MESS.Domain.Entities.Task>, ITas
             .Include(t => t.Creator)
             .Include(t => t.SourceMessage)
             .FirstOrDefaultAsync(t => t.Id == id);
+
+    public async Task<List<MESS.Domain.Entities.Task>> GetTasksByFilterAsync(Guid? conversationId, Guid? messageId, Guid? assigneeId, Guid? creatorId, string? status)
+    {
+        var query = _dbSet
+            .Include(t => t.Assignee)
+            .Include(t => t.Creator)
+            .Include(t => t.SourceMessage)
+            .AsQueryable();
+
+        if (messageId.HasValue)
+        {
+            query = query.Where(t => t.SourceMessageId == messageId.Value);
+        }
+
+        if (conversationId.HasValue)
+        {
+            var convIdStr = conversationId.Value.ToString();
+            query = query.Where(t => (t.SourceMessage != null && t.SourceMessage.ConversationId == conversationId.Value) || t.RefId == convIdStr);
+        }
+
+        if (assigneeId.HasValue)
+        {
+            query = query.Where(t => t.AssigneeId == assigneeId.Value);
+        }
+
+        if (creatorId.HasValue)
+        {
+            query = query.Where(t => t.CreatedBy == creatorId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(t => t.Status == status);
+        }
+
+        return await query
+            .OrderByDescending(t => t.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }
 
 public class MessageReactionRepository : GenericRepository<MessageReaction>, IMessageReactionRepository

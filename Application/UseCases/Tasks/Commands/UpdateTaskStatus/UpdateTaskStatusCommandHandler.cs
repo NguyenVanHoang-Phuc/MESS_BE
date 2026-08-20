@@ -41,6 +41,19 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
         if (task == null)
             return Result<TaskResponse>.Failure(new Error("Task.NotFound", "Không tìm thấy công việc này."));
 
+        // Check permission: Creator, Assignee, or Admin
+        var (cleanDesc, parsedAssigneeIds) = TaskMetadataHelper.ParseDescription(task.Description);
+        var isCreator = !task.CreatedBy.HasValue || task.CreatedBy == request.CurrentUserId;
+        var isAssignee = task.AssigneeId == request.CurrentUserId || parsedAssigneeIds.Contains(request.CurrentUserId);
+
+        var currentUser = await _userRepository.GetByIdWithDetailsAsync(request.CurrentUserId);
+        var isAdmin = currentUser?.Role?.Name == "Admin";
+
+        if (!isCreator && !isAssignee && !isAdmin)
+        {
+            return Result<TaskResponse>.Failure(new Error("Task.Unauthorized", "Chỉ người tạo công việc hoặc người được phân công phụ trách mới có quyền thay đổi trạng thái."));
+        }
+
         task.Status = request.Status;
         task.UpdatedAt = DateTime.UtcNow;
 
@@ -50,7 +63,6 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
         var fullTask = await _taskRepository.GetByIdWithDetailsAsync(task.Id);
         var response = _mapper.Map<TaskResponse>(fullTask);
 
-        var (cleanDesc, parsedAssigneeIds) = TaskMetadataHelper.ParseDescription(fullTask?.Description);
         response.Description = cleanDesc;
 
         var uids = new List<Guid>(parsedAssigneeIds);

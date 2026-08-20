@@ -170,7 +170,9 @@ public class CloudinaryStorageService : IFileStorageService
             {
                 using var stream = file.OpenReadStream();
                 var contentType = file.ContentType?.ToLower() ?? "";
-                var isImage = contentType.StartsWith("image/");
+                var ext = Path.GetExtension(file.FileName).ToLower();
+                var isPdf = ext == ".pdf" || contentType == "application/pdf";
+                var isImage = contentType.StartsWith("image/") || isPdf;
                 var isVideo = contentType.StartsWith("video/");
 
                 if (isImage)
@@ -179,15 +181,16 @@ public class CloudinaryStorageService : IFileStorageService
                     {
                         File = new FileDescription(file.FileName, stream),
                         Folder = $"mess_chat/{folder}",
-                        PublicId = $"{Guid.NewGuid():N}",
+                        PublicId = isPdf ? $"{Guid.NewGuid():N}_{Path.GetFileNameWithoutExtension(file.FileName)}" : $"{Guid.NewGuid():N}",
                         UseFilename = true,
-                        UniqueFilename = true
+                        UniqueFilename = true,
+                        AccessMode = "public"
                     };
                     var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                     var url = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        _logger.LogInformation("Uploaded image {FileName} to Cloudinary: {Url}", file.FileName, url);
+                        _logger.LogInformation("Uploaded image/pdf {FileName} to Cloudinary: {Url}", file.FileName, url);
                         return url;
                     }
                 }
@@ -199,7 +202,8 @@ public class CloudinaryStorageService : IFileStorageService
                         Folder = $"mess_chat/{folder}",
                         PublicId = $"{Guid.NewGuid():N}",
                         UseFilename = true,
-                        UniqueFilename = true
+                        UniqueFilename = true,
+                        AccessMode = "public"
                     };
                     var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                     var url = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString();
@@ -217,7 +221,8 @@ public class CloudinaryStorageService : IFileStorageService
                         Folder = $"mess_chat/{folder}",
                         PublicId = $"{Guid.NewGuid():N}_{file.FileName}",
                         UseFilename = true,
-                        UniqueFilename = true
+                        UniqueFilename = true,
+                        AccessMode = "public"
                     };
                     var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                     var url = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString();

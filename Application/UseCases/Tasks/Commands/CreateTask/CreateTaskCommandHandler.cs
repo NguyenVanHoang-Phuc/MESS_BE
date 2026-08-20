@@ -37,6 +37,11 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Resul
 
     public async Task<Result<TaskResponse>> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
+        if (request.Deadline.HasValue && request.Deadline.Value <= DateTime.UtcNow)
+        {
+            return Result<TaskResponse>.Failure(new Error("Task.InvalidDeadline", "Hạn chót (Deadline) của công việc phải lớn hơn thời gian hiện tại."));
+        }
+
         var assigneesList = request.AssigneeIds ?? new List<Guid>();
         if (request.AssigneeId.HasValue && !assigneesList.Contains(request.AssigneeId.Value))
         {

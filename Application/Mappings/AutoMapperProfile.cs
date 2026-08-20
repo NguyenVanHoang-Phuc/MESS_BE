@@ -81,6 +81,7 @@ public class AutoMapperProfile : Profile
 
         // --- Task ---
         CreateMap<MESS.Domain.Entities.Task, TaskResponse>()
+            .ForMember(d => d.Description, o => o.MapFrom(s => ExtractCleanDescription(s.Description)))
             .ForMember(d => d.AssigneeName, o => o.MapFrom(s => s.Assignee != null ? s.Assignee.FullName : null))
             .ForMember(d => d.CreatorName, o => o.MapFrom(s => s.Creator != null ? s.Creator.FullName : null))
             .ForMember(d => d.CreatorId, o => o.MapFrom(s => s.CreatedBy))
@@ -88,6 +89,14 @@ public class AutoMapperProfile : Profile
             .ForMember(d => d.Priority, o => o.MapFrom(s => ExtractPriority(s.RefType)))
             .ForMember(d => d.CreatedAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)))
             .ForMember(d => d.Deadline, o => o.MapFrom(s => s.Deadline.HasValue ? DateTime.SpecifyKind(s.Deadline.Value, DateTimeKind.Utc) : (DateTime?)null));
+    }
+
+    private static string? ExtractCleanDescription(string? desc)
+    {
+        if (string.IsNullOrEmpty(desc)) return desc;
+        var clean = System.Text.RegularExpressions.Regex.Replace(desc, @"<!--ASSIGNEES:.*?-->", "");
+        clean = System.Text.RegularExpressions.Regex.Replace(clean, @"<!--REMINDED:.*?-->", "");
+        return clean.TrimEnd();
     }
 
     private static Guid? ParseGuidOrNull(string? str)

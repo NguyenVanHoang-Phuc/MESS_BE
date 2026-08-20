@@ -13,14 +13,26 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DotNetEnv; 
+using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
 
-// 2. NẠP FILE .ENV TRƯỚC TIÊN (Trước cả lúc tạo builder)
-Env.Load();
+// 1. Nạp file .env từ thư mục chạy hoặc AppDomain BaseDirectory
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (!File.Exists(envPath))
+    envPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".env");
+
+if (File.Exists(envPath))
+{
+    Env.Load(envPath);
+}
+else
+{
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 3. THÊM BIẾN MÔI TRƯỜNG VÀO CẤU HÌNH CỦA .NET
+// 2. Thêm biến môi trường từ .env vào cấu hình của .NET
 builder.Configuration.AddEnvironmentVariables();
 
 // === Services ===
@@ -116,18 +128,40 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// === Tự động tạo bảng Database (Auto Migration) ===
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbContext = services.GetRequiredService<MESS.Infrastructure.Data.MessDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "[MESS] Lỗi khi tự động Migrate Database: {Message}", ex.Message);
+    }
+}
+
 // === Middleware Pipeline ===
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+// 1. CORS PHẢI ĐỨNG ĐẦU TIÊN để luôn đính kèm header Access-Control-Allow-Origin
 app.UseCors("AllowAll");
+
+// Luôn bật Swagger UI (vào thẳng trang chủ website để test API)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MESS API v1");
+    c.RoutePrefix = string.Empty; // Truy cập domain gốc sẽ hiện Swagger UI
+});
+
+// Bật chuyển hướng HTTPS
+app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

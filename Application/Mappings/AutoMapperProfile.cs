@@ -75,7 +75,7 @@ public class AutoMapperProfile : Profile
                                 : "[Hình ảnh/Tệp]"));
 
         CreateMap<Attachment, AttachmentResponse>()
-            .ForMember(d => d.FileName, o => o.MapFrom(s => System.IO.Path.GetFileName(s.FileUrl)))
+            .ForMember(d => d.FileName, o => o.MapFrom(s => ExtractCleanFileName(s.FileUrl)))
             .ForMember(d => d.FileType, o => o.MapFrom(s => s.FileType ?? string.Empty))
             .ForMember(d => d.FileSize, o => o.MapFrom(s => s.FileSize));
 
@@ -89,6 +89,25 @@ public class AutoMapperProfile : Profile
             .ForMember(d => d.Priority, o => o.MapFrom(s => ExtractPriority(s.RefType)))
             .ForMember(d => d.CreatedAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc)))
             .ForMember(d => d.Deadline, o => o.MapFrom(s => s.Deadline.HasValue ? DateTime.SpecifyKind(s.Deadline.Value, DateTimeKind.Utc) : (DateTime?)null));
+    }
+
+    private static string ExtractCleanFileName(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "attachment";
+        try
+        {
+            var clean = url.Split('?')[0].Split('#')[0];
+            clean = System.IO.Path.GetFileName(clean);
+            if (clean.Length > 33 && clean[32] == '_' && System.Text.RegularExpressions.Regex.IsMatch(clean.Substring(0, 32), "^[a-fA-F0-9]{32}$"))
+            {
+                return clean.Substring(33);
+            }
+            return clean;
+        }
+        catch
+        {
+            return "attachment";
+        }
     }
 
     private static string? ExtractCleanDescription(string? desc)

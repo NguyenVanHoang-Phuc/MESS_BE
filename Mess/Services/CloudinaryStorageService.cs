@@ -16,7 +16,7 @@ namespace MESS.Mess.Services;
 public class CloudinaryStorageService : IFileStorageService
 {
     private readonly BlobServiceClient? _blobServiceClient;
-    private readonly string _azureContainerName = "mess-files";
+    private readonly string _azureContainerName;
     private readonly Cloudinary? _cloudinary;
     private readonly LocalFileStorageService _fallbackStorage;
     private readonly ILogger<CloudinaryStorageService> _logger;
@@ -29,10 +29,22 @@ public class CloudinaryStorageService : IFileStorageService
         _fallbackStorage = fallbackStorage;
         _logger = logger;
 
-        // 1. Check Azure Blob Storage Connection String
+        // 1. Container Name configuration (mặc định 'mess' hoặc từ .env)
+        _azureContainerName = configuration["BlobSettings:ContainerName"]
+                           ?? configuration["BlobSettings__ContainerName"]
+                           ?? configuration["Azure:ContainerName"]
+                           ?? configuration["Azure__ContainerName"]
+                           ?? Environment.GetEnvironmentVariable("BlobSettings__ContainerName")
+                           ?? Environment.GetEnvironmentVariable("Azure__ContainerName")
+                           ?? "mess";
+
+        // 2. Check Azure Blob Storage Connection String
         var azureConnStr = configuration["Azure:BlobConnectionString"] 
                         ?? configuration["Azure__BlobConnectionString"]
+                        ?? configuration["BlobSettings:ConnectionString"]
+                        ?? configuration["BlobSettings__ConnectionString"]
                         ?? Environment.GetEnvironmentVariable("Azure__BlobConnectionString")
+                        ?? Environment.GetEnvironmentVariable("BlobSettings__ConnectionString")
                         ?? Environment.GetEnvironmentVariable("Azure:BlobConnectionString");
 
         if (!string.IsNullOrWhiteSpace(azureConnStr))
@@ -40,7 +52,7 @@ public class CloudinaryStorageService : IFileStorageService
             try
             {
                 _blobServiceClient = new BlobServiceClient(azureConnStr.Trim());
-                _logger.LogInformation("Azure Blob Storage initialized successfully.");
+                _logger.LogInformation("Azure Blob Storage initialized successfully with container: {ContainerName}", _azureContainerName);
             }
             catch (Exception ex)
             {

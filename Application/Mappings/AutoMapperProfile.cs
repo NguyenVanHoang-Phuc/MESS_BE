@@ -71,7 +71,7 @@ public class AutoMapperProfile : Profile
                             a.FileUrl.EndsWith(".mp4") || a.FileUrl.EndsWith(".mov"))
                             ? "[Video]"
                             : s.Attachments != null && s.Attachments.Any()
-                                ? (s.Attachments.Count > 1 ? $"[Đã gửi {s.Attachments.Count} tệp đính kèm]" : $"[Tệp] {System.IO.Path.GetFileName(s.Attachments.First().FileUrl)}")
+                                ? (s.Attachments.Count > 1 ? $"[Đã gửi {s.Attachments.Count} tệp đính kèm]" : $"[Tệp] {ExtractCleanFileName(s.Attachments.First().FileUrl)}")
                                 : "[Hình ảnh/Tệp]"));
 
         CreateMap<Attachment, AttachmentResponse>()

@@ -4,18 +4,17 @@ using MESS.Domain.Shared;
 
 namespace MESS.Domain.Entities;
 
-public class Department : AuditableEntity
+public class WorkShift : AuditableEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
-    public Guid? ParentDepartmentId { get; set; }
-    public bool AutoCreateGroup { get; set; } = true;
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+    public Guid? DepartmentId { get; set; }
     public Guid? DefaultConversationId { get; set; }
 
     // Navigation properties
-    public virtual Department? ParentDepartment { get; set; }
-    public virtual ICollection<Department> SubDepartments { get; set; } = new List<Department>();
+    public virtual Department? Department { get; set; }
     public virtual Conversation? DefaultConversation { get; set; }
-    public virtual ICollection<WorkShift> WorkShifts { get; set; } = new List<WorkShift>();
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

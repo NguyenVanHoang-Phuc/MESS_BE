@@ -10,11 +10,14 @@ public class User : AuditableEntity
     public string FullName { get; set; } = string.Empty;
     public string? PasswordHash { get; set; }
     public Guid? DepartmentId { get; set; }
+    public Guid? WorkShiftId { get; set; }
     public Guid? RoleId { get; set; }
+    public string? PositionTitle { get; set; }
     public bool IsActive { get; set; } = true;
 
     // Navigation properties
     public virtual Department? Department { get; set; }
+    public virtual WorkShift? WorkShift { get; set; }
     public virtual Role? Role { get; set; }
     
     public virtual ICollection<Conversation> CreatedConversations { get; set; } = new List<Conversation>();

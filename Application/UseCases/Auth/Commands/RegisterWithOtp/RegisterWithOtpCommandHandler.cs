@@ -12,6 +12,7 @@ namespace MESS.Application.UseCases.Auth.Commands.RegisterWithOtp;
 public class RegisterWithOtpCommandHandler : IRequestHandler<RegisterWithOtpCommand, Result<LoginResponse>>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IOtpService _otpService;
     private readonly ITokenService _tokenService;
     private readonly IUnitOfWork _unitOfWork;
@@ -19,12 +20,14 @@ public class RegisterWithOtpCommandHandler : IRequestHandler<RegisterWithOtpComm
 
     public RegisterWithOtpCommandHandler(
         IUserRepository userRepository,
+        IRoleRepository roleRepository,
         IOtpService otpService,
         ITokenService tokenService,
         IUnitOfWork unitOfWork,
         ILogger<RegisterWithOtpCommandHandler> logger)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
         _otpService = otpService;
         _tokenService = tokenService;
         _unitOfWork = unitOfWork;
@@ -54,12 +57,16 @@ public class RegisterWithOtpCommandHandler : IRequestHandler<RegisterWithOtpComm
             return Result<LoginResponse>.Failure(DomainErrors.User.EmailAlreadyExists);
         }
 
+        // Assign default User role
+        var defaultUserRole = await _roleRepository.FindByNameAsync("User");
+
         var newUser = new User
         {
             Id = Guid.NewGuid(),
             Username = registrationData.Email,
             FullName = registrationData.FullName,
             PasswordHash = registrationData.PasswordHash,
+            RoleId = defaultUserRole?.Id,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -69,7 +76,8 @@ public class RegisterWithOtpCommandHandler : IRequestHandler<RegisterWithOtpComm
 
         _logger.LogInformation("Successfully registered user {Email} with ID {UserId}", newUser.Username, newUser.Id);
 
-        var token = _tokenService.GenerateToken(newUser, Array.Empty<string>());
+        var roles = defaultUserRole != null ? new[] { defaultUserRole.Name } : Array.Empty<string>();
+        var token = _tokenService.GenerateToken(newUser, roles);
 
         var response = new LoginResponse
         {
@@ -77,7 +85,7 @@ public class RegisterWithOtpCommandHandler : IRequestHandler<RegisterWithOtpComm
             UserId = newUser.Id,
             Username = newUser.Username,
             FullName = newUser.FullName,
-            RoleName = "Member",
+            RoleName = defaultUserRole?.Name ?? "User",
             DepartmentName = null
         };
 

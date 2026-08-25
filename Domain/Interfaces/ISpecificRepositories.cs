@@ -66,3 +66,8 @@ public interface IDepartmentRepository : IGenericRepository<Department>
     Task<Department?> FindByNameAsync(string name);
     Task<IEnumerable<Department>> GetAllWithUsersAsync();
 }
+
+public interface IRoleRepository : IGenericRepository<Role>
+{
+    Task<Role?> FindByNameAsync(string name);
+}

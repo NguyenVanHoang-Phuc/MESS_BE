@@ -23,6 +23,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
+        builder.Property(u => u.PositionTitle)
+            .HasMaxLength(255);
+
         builder.Property(u => u.IsActive)
             .IsRequired()
             .HasDefaultValue(true);
@@ -30,6 +33,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasOne(u => u.Department)
             .WithMany(d => d.Users)
             .HasForeignKey(u => u.DepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(u => u.WorkShift)
+            .WithMany(ws => ws.Users)
+            .HasForeignKey(u => u.WorkShiftId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(u => u.Role)

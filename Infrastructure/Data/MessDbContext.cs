@@ -13,6 +13,7 @@ public class MessDbContext : DbContext
     }
 
     public DbSet<Department> Departments { get; set; }
+    public DbSet<WorkShift> WorkShifts { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
@@ -22,6 +23,7 @@ public class MessDbContext : DbContext
     public DbSet<MessageRead> MessageReads { get; set; }
     public DbSet<MessageReaction> MessageReactions { get; set; }
     public DbSet<Task> Tasks { get; set; }
+    public DbSet<ZaloNotificationLog> ZaloNotificationLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

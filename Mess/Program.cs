@@ -39,7 +39,12 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
@@ -128,7 +133,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// === Tự động tạo bảng Database (Auto Migration) ===
+// === Tự động tạo bảng Database (Auto Migration) & Tự động Seed Data ===
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -136,11 +141,14 @@ using (var scope = app.Services.CreateScope())
     {
         var dbContext = services.GetRequiredService<MESS.Infrastructure.Data.MessDbContext>();
         dbContext.Database.Migrate();
+
+        var seeder = services.GetRequiredService<MESS.Infrastructure.Data.DatabaseSeeder>();
+        await seeder.SeedAsync();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "[MESS] Lỗi khi tự động Migrate Database: {Message}", ex.Message);
+        logger.LogError(ex, "[MESS] Lỗi khi tự động Migrate / Seed Database: {Message}", ex.Message);
     }
 }
 

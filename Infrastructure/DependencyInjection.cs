@@ -36,11 +36,18 @@ public static class DependencyInjection
         services.AddScoped<ITaskRepository, TaskRepository>();
         services.AddScoped<IMessageReactionRepository, MessageReactionRepository>();
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
 
         // Auth Services
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ICurrentUser, CurrentUser>();
+
+        // Org Sync Service (MES-015)
+        services.AddScoped<MESS.Application.Interfaces.Org.IOrgSyncService, MESS.Infrastructure.Services.OrgSyncService>();
+
+        // Zalo OA / ZNS Notification Simulator Service
+        services.AddScoped<MESS.Application.Interfaces.Zalo.IZaloNotificationService, MESS.Infrastructure.Services.Zalo.ZaloNotificationSimulatorService>();
 
         // HttpContext (needed for CurrentUser)
         services.AddHttpContextAccessor();

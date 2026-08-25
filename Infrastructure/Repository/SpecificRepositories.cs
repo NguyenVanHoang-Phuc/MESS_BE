@@ -340,3 +340,11 @@ public class DepartmentRepository : GenericRepository<Department>, IDepartmentRe
     public async Task<IEnumerable<Department>> GetAllWithUsersAsync()
         => await _dbSet.Include(d => d.Users).AsNoTracking().ToListAsync();
 }
+
+public class RoleRepository : GenericRepository<Role>, IRoleRepository
+{
+    public RoleRepository(MessDbContext context) : base(context) { }
+
+    public async Task<Role?> FindByNameAsync(string name)
+        => await _dbSet.FirstOrDefaultAsync(r => r.Name == name);
+}

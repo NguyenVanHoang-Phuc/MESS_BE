@@ -25,9 +25,23 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(c => c.CanonicalKey)
             .HasMaxLength(100);
 
+        builder.Property(c => c.IsSystemGroup)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasIndex(c => c.CanonicalKey)
             .IsUnique()
             .HasFilter("[CanonicalKey] IS NOT NULL");
+
+        builder.HasOne(c => c.Department)
+            .WithMany()
+            .HasForeignKey(c => c.DepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(c => c.WorkShift)
+            .WithMany()
+            .HasForeignKey(c => c.WorkShiftId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(c => c.Creator)
             .WithMany(u => u.CreatedConversations)
